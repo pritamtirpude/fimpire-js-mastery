@@ -60,7 +60,7 @@ const Navbar = () => {
                 component={Link}
                 to={`/profile/:id`}
                 className={classes.linkButton}
-                onCLick={() => {}}
+                onClick={() => {}}
               >
                 {!isMobile && <>My Movies &nbsp;</>}
                 <Avatar
