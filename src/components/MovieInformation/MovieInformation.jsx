@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Typography,
@@ -30,31 +30,83 @@ import axios from "axios";
 import {
   useGetMovieQuery,
   useGetRecommendationsQuery,
+  useGetListQuery,
 } from "../../services/TMDB";
 import { selectGenreOrCategory } from "../../features/currentGenreOrCategory";
+import { userSelector } from "../../features/auth";
 
 import useStyles from "./styles";
 
 const MovieInformation = () => {
   const { id } = useParams();
   const [open, setOpen] = useState(false);
+  const [isMovieFavorited, setIsMovieFavorited] = useState(false);
+  const [isMovieWatchListed, setIsMovieWatchListed] = useState(false);
 
   const dispatch = useDispatch();
+  const { user } = useSelector(userSelector);
 
   const classes = useStyles();
 
   const { data, isFetching, error } = useGetMovieQuery(id);
+  const { data: favoriteMovies } = useGetListQuery({
+    listName: "favorite/movies",
+    accountId: user.id,
+    sessionId: localStorage.getItem("session_id"),
+    page: 1,
+  });
+  const { data: watchlistMovies } = useGetListQuery({
+    listName: "watchlist/movies",
+    accountId: user.id,
+    sessionId: localStorage.getItem("session_id"),
+    page: 1,
+  });
   const { data: recommendations, isFetching: isRecommendationsFetching } =
     useGetRecommendationsQuery({
       list: "/recommendations",
       movieId: id,
     });
 
-  const isMovieFavorited = false;
-  const isMovieWatchListed = false;
+  useEffect(() => {
+    setIsMovieFavorited(
+      !!favoriteMovies?.results?.find((movie) => movie?.id === data?.id)
+    );
+  }, [favoriteMovies, data]);
 
-  const addToFavorites = () => {};
-  const addToWatchList = () => {};
+  useEffect(() => {
+    setIsMovieWatchListed(
+      !!watchlistMovies?.results?.find((movie) => movie?.id === data?.id)
+    );
+  }, [watchlistMovies, data]);
+
+  const addToFavorites = async () => {
+    await axios.post(
+      `https://api.themoviedb.org/3/account/${user.id}/favorite?api_key=${
+        process.env.REACT_APP_TMDB_API_KEY
+      }&session_id=${localStorage.getItem("session_id")}`,
+      {
+        media_type: "movie",
+        media_id: id,
+        favorite: !isMovieFavorited,
+      }
+    );
+
+    setIsMovieFavorited((prev) => !prev);
+  };
+  const addToWatchList = async () => {
+    await axios.post(
+      `https://api.themoviedb.org/3/account/${user.id}/watchlist?api_key=${
+        process.env.REACT_APP_TMDB_API_KEY
+      }&session_id=${localStorage.getItem("session_id")}`,
+      {
+        media_type: "movie",
+        media_id: id,
+        watchlist: !isMovieWatchListed,
+      }
+    );
+
+    setIsMovieWatchListed((prev) => !prev);
+  };
 
   if (isFetching) {
     return (
@@ -100,10 +152,8 @@ const MovieInformation = () => {
             </Typography>
           </Box>
           <Typography variant="h6" align="center" gutterBottom>
-            {data?.runtime}min
-            {data?.spoken_languages.length > 0
-              ? ` / ${data?.spoken_languages[0].name}`
-              : ""}
+            {data?.runtime}min | Language: &nbsp;
+            {`${data?.spoken_languages[0]?.name}`}
           </Typography>
         </Grid>
         <Grid item className={classes.genresContainer}>
