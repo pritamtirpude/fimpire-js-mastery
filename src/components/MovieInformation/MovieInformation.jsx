@@ -246,7 +246,7 @@ const MovieInformation = () => {
               </ButtonGroup>
             </Grid>
             <Grid item xs={12} sm={6} className={classes.buttonsContainer}>
-              <ButtonGroup size="medium" variant="outlined">
+              <ButtonGroup size="small" variant="outlined">
                 <Button
                   onClick={addToFavorites}
                   endIcon={
