@@ -40,6 +40,8 @@ const Navbar = () => {
   const token = localStorage.getItem("request_token");
   const sessionIdFromLocalStorage = localStorage.getItem("session_id");
 
+  console.log(user);
+
   useEffect(() => {
     const logInUser = async () => {
       if (token) {
@@ -101,7 +103,7 @@ const Navbar = () => {
                 <Avatar
                   style={{ width: 30, height: 30 }}
                   alt="Profile"
-                  src="https://www.istockphoto.com/photos/blank-avatar/"
+                  src={`https://www.themoviedb.org/t/p/w64_and_h64_face${user?.avatar?.tmdb?.avatar_path}`}
                 />
               </Button>
             )}
